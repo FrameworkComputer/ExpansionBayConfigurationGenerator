@@ -276,8 +276,8 @@ int main(int argc, char *argv[]) {
   default:
     abort ();
   }
-  printf("Build: %s %s", __DATE__, __TIME__);
-  printf("Descriptor Version: %d %d", 0, 1);
+  printf("Build: %s %s\n", __DATE__, __TIME__);
+  printf("Descriptor Version: %d %d\n", 0, 1);
 
   printf ("gpu = %d, ssd = %d, module SN = %s pcb SN = %s\n",
         gpuflag, ssdflag, serialvalue, pcbvalue);
