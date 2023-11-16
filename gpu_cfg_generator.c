@@ -211,7 +211,7 @@ static struct default_ssd_cfg ssd_cfg = {
 };
 
 
-void program_eeprom(const char * serial, struct gpu_cfg_descriptor * descriptor, size_t len)
+void program_eeprom(const char * serial, struct gpu_cfg_descriptor * descriptor, size_t len, const char * outpath)
 {
 	crc_t crc;
 	size_t addr = 0;
@@ -229,9 +229,9 @@ void program_eeprom(const char * serial, struct gpu_cfg_descriptor * descriptor,
 	crc = crc_update(crc, descriptor, sizeof(struct gpu_cfg_descriptor)-sizeof(uint32_t));
 	descriptor->crc32 = crc_finalize(crc);
 
-	printf("writing EEPROM to %s\n", "eeprom.bin");
+	printf("writing EEPROM to %s\n", outpath);
 
-  fptr = fopen("eeprom.bin","wb");
+  fptr = fopen(outpath,"wb");
   fwrite(descriptor, len, 1, fptr); 
   fclose(fptr); 
 
@@ -276,6 +276,8 @@ int main(int argc, char *argv[]) {
   default:
     abort ();
   }
+  printf("Build: %s %s", __DATE__, __TIME__);
+  printf("Descriptor Version: %d %d", 0, 1);
 
   printf ("gpu = %d, ssd = %d, module SN = %s pcb SN = %s\n",
         gpuflag, ssdflag, serialvalue, pcbvalue);
@@ -284,10 +286,10 @@ int main(int argc, char *argv[]) {
     if (pcbvalue) {
       strncpy(gpu_cfg.pcba_serial.serial, pcbvalue, GPU_SERIAL_LEN);
     }
-    program_eeprom(serialvalue, (void *)&gpu_cfg, sizeof(gpu_cfg));
+    program_eeprom(serialvalue, (void *)&gpu_cfg, sizeof(gpu_cfg), "gpueeprom.bin");
   }
 
   if (ssdflag) {
-    program_eeprom(serialvalue, (void *)&ssd_cfg, sizeof(ssd_cfg));
+    program_eeprom(serialvalue, (void *)&ssd_cfg, sizeof(ssd_cfg), "ssdeeprom.bin");
   }
 }
