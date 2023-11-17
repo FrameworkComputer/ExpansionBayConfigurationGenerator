@@ -242,13 +242,13 @@ int main(int argc, char *argv[]) {
   int ssdflag = 0;
   char *serialvalue = NULL;
   char *pcbvalue = NULL;
-
+  char *outfilename = "eeprom.bin";
   int index;
   int c;
 
   opterr = 0;
 
-  while ((c = getopt (argc, argv, "gds:p:")) != -1)
+  while ((c = getopt (argc, argv, "gds:p:o:")) != -1)
   switch (c)
   {
   case 'g':
@@ -262,6 +262,9 @@ int main(int argc, char *argv[]) {
     break;
   case 'p':
     pcbvalue = optarg;
+    break;
+  case 'o':
+    outfilename = optarg;
     break;
   case '?':
     if (optopt == 'c')
@@ -279,17 +282,17 @@ int main(int argc, char *argv[]) {
   printf("Build: %s %s\n", __DATE__, __TIME__);
   printf("Descriptor Version: %d %d\n", 0, 1);
 
-  printf ("gpu = %d, ssd = %d, module SN = %s pcb SN = %s\n",
-        gpuflag, ssdflag, serialvalue, pcbvalue);
+  printf ("gpu = %d, ssd = %d, module SN = %s pcb SN = %s output file = %s\n",
+        gpuflag, ssdflag, serialvalue, pcbvalue, outfilename);
 
   if (gpuflag) {
     if (pcbvalue) {
       strncpy(gpu_cfg.pcba_serial.serial, pcbvalue, GPU_SERIAL_LEN);
     }
-    program_eeprom(serialvalue, (void *)&gpu_cfg, sizeof(gpu_cfg), "gpueeprom.bin");
+    program_eeprom(serialvalue, (void *)&gpu_cfg, sizeof(gpu_cfg), outfilename);
   }
 
   if (ssdflag) {
-    program_eeprom(serialvalue, (void *)&ssd_cfg, sizeof(ssd_cfg), "ssdeeprom.bin");
+    program_eeprom(serialvalue, (void *)&ssd_cfg, sizeof(ssd_cfg), outfilename);
   }
 }
