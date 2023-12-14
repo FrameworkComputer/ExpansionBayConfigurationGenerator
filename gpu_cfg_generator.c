@@ -131,7 +131,7 @@ static struct default_gpu_cfg gpu_cfg = {
 	.therm = {.thermal_type = GPU_THERM_F75303, .address = 0x4D},
 
 	.hdr7 = {.block_type = GPUCFG_TYPE_CUSTOM_TEMP, .block_length = sizeof(struct gpu_cfg_custom_temp)},
-	.custom_temp = {.idx = 2, .temp_fan_off = C_TO_K(48), .temp_fan_max = C_TO_K(69)},
+	.custom_temp = {.idx = 2, .temp_fan_off = C_TO_K(47), .temp_fan_max = C_TO_K(62)},
 
 	.hdr8 = {.block_type = GPUCFG_TYPE_SUBSYS, .block_length = sizeof(struct gpu_subsys_serial)},
 	.pcba_serial = {.gpu_subsys = GPU_PCB, .serial = {'F', 'R', 'A', 'G', 'M', 'A', 'S', 'P', '8', '1',
