@@ -29,6 +29,22 @@ The application will generate a `.bin` file in the same directory with the EEPRO
 ./gpu_cfg_gen -d -s FRAKMBCP81331ASSY0
 ```
 
+## Different file name
+
+By default the generated fiel is called `eeprom.bin`, here's how to use a different one:
+
+```
+./gpu_cfg_gen -d -s FRAKMBCP81331ASSY0 -o ssd.bin
+```
+
+## Read EEPROM binary
+
+To double-check you can read the binary back from EEPROM and analyze it with the tool:
+
+```sh
+./gpu_cfg_gen -i eeprom.bin
+```
+
 # Build natively
 
 While the regular build builds a single executable that runs on Linux and

@@ -213,6 +213,72 @@ static struct default_ssd_cfg ssd_cfg = {
 	.gpu_3v_5v_en = {.gpio = GPU_3V_5V_EN, .function = GPIO_FUNC_HIGH, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_S5},
 };
 
+void dump_descriptor(struct gpu_cfg_descriptor *desc)
+{
+
+	// Just for debugging
+	// printf("Descriptor\n");
+	// printf("  Magic         %02X%02X%02X%02X\n", (uint8_t)desc->magic[0], (uint8_t)desc->magic[1], (uint8_t)desc->magic[2], (uint8_t)desc->magic[3]);
+	// printf("  Length:       %d\n", desc->length);
+	// printf("  Desc Length:  %d\n", desc->descriptor_length);
+	// printf("  Desc CRC32:   %08X\n", desc->descriptor_crc32);
+	// printf("  CRC32:        %08X\n", desc->crc32);
+	// printf("  Desc Version: %d.%d\n", desc->descriptor_version_major, desc->descriptor_version_minor);
+	// printf("  HW Version:   %04X\n", desc->hardware_version);
+	// printf("  HW Rev:       %d\n", desc->hardware_revision);
+	// printf("  Serialnum:    %s\n", desc->serial);
+
+	printf("Serialnum:      %s\n", desc->serial);
+}
+
+void dump_gpu(struct default_gpu_cfg* gpu_cfg)
+{
+	printf("Type:           GPU\n");
+	switch (gpu_cfg->pcba_serial.gpu_subsys) {
+		case GPU_PCB:
+				printf("PCBA Serial:    %s\n", gpu_cfg->pcba_serial.serial);
+			break;
+		case GPU_LEFT_FAN:
+				printf("Left Fan SN:    %s\n", gpu_cfg->pcba_serial.serial);
+			break;
+		case GPU_RIGHT_FAN:
+				printf("Right Fan SN:   %s\n", gpu_cfg->pcba_serial.serial);
+			break;
+		case GPU_HOUSING:
+				printf("Housing SN:     %s\n", gpu_cfg->pcba_serial.serial);
+			break;
+		default:
+				printf("??? Serial:     %s\n", gpu_cfg->pcba_serial.serial);
+				break;
+	}
+}
+
+void dump_ssd(struct default_ssd_cfg* ssd_cfg)
+{
+	printf("Type:           SSD\n");
+}
+
+void read_eeprom(const char * infilename)
+{
+	FILE *fptr;
+  fptr = fopen(infilename,"rb");
+	// TODO: gpu_cfg is bigger than ssd_cfg, that's why I read it into there.
+	// Should make it safer so that if we change the structures, the same still holds.
+  fread((void *)&gpu_cfg, sizeof(gpu_cfg), 1, fptr);
+  fclose(fptr);
+
+	uint32_t len = gpu_cfg.descriptor.descriptor_length + sizeof(struct gpu_cfg_descriptor);
+	// TODO: Length comparison won't work if newer versions of the descriptors have different sizes
+	if (len == sizeof(struct default_gpu_cfg)) {
+		dump_descriptor((struct gpu_cfg_descriptor *)&gpu_cfg);
+		dump_gpu((struct default_gpu_cfg*) &gpu_cfg);
+	} else if (len == sizeof(struct default_ssd_cfg)) {
+		dump_descriptor((struct gpu_cfg_descriptor *)&gpu_cfg);
+		dump_ssd((struct default_ssd_cfg*) &gpu_cfg);
+	} else {
+		printf("Invalid descriptor. No body found (Len %d)\n", len);
+	}
+}
 
 void program_eeprom(const char * serial, struct gpu_cfg_descriptor * descriptor, size_t len, const char * outpath)
 {
@@ -233,8 +299,8 @@ void program_eeprom(const char * serial, struct gpu_cfg_descriptor * descriptor,
 	printf("writing EEPROM to %s\n", outpath);
 
   fptr = fopen(outpath,"wb");
-  fwrite(descriptor, len, 1, fptr); 
-  fclose(fptr); 
+  fwrite(descriptor, len, 1, fptr);
+  fclose(fptr);
 
 }
 
@@ -244,11 +310,12 @@ int main(int argc, char *argv[]) {
   char *serialvalue = NULL;
   char *pcbvalue = NULL;
   char *outfilename = "eeprom.bin";
+  char *infilename = NULL;
   int c;
 
   opterr = 0;
 
-  while ((c = getopt (argc, argv, "gds:p:o:")) != -1)
+  while ((c = getopt (argc, argv, "gds:p:o:i:")) != -1)
   switch (c)
   {
   case 'g':
@@ -266,6 +333,9 @@ int main(int argc, char *argv[]) {
   case 'o':
     outfilename = optarg;
     break;
+  case 'i':
+    infilename = optarg;
+    break;
   case '?':
     if (optopt == 'c')
       fprintf (stderr, "Option -%c requires an argument.\n", optopt);
@@ -280,10 +350,16 @@ int main(int argc, char *argv[]) {
     abort ();
   }
   printf("Build: %s %s\n", __DATE__, __TIME__);
+
+	if (infilename) {
+		read_eeprom(infilename);
+		return 0;
+	}
+
   printf("Descriptor Version: %d %d\n", 0, 1);
 
   printf ("gpu = %d, ssd = %d, module SN = %s pcb SN = %s output file = %s\n",
-        gpuflag, ssdflag, serialvalue, pcbvalue, outfilename);
+        gpuflag, ssdflag, serialvalue, pcbvalue, outfilename, infilename);
 
   if (gpuflag) {
     if (pcbvalue) {
@@ -295,4 +371,6 @@ int main(int argc, char *argv[]) {
   if (ssdflag) {
     program_eeprom(serialvalue, (void *)&ssd_cfg, sizeof(ssd_cfg), outfilename);
   }
+
+	return 0;
 }

@@ -25,6 +25,12 @@
 
 #define __packed __attribute__((packed))
 
+/**
+ * The main struct (header)
+ * Contained in either either
+ * - default_gpu_cfg
+ * - default_ssd_cfg
+ */
 struct gpu_cfg_descriptor {
 	/* Expansion bay card magic value that is unique */
 	char magic[4];
@@ -49,12 +55,13 @@ struct gpu_cfg_descriptor {
 	uint32_t crc32;
 } __packed;
 
-struct gpu_config_header {
-	union {
-		struct gpu_cfg_descriptor header;
-		uint8_t bytes[0x2B];
-	};
-} __packed;
+// Unused structure
+//struct gpu_config_header {
+//	union {
+//		struct gpu_cfg_descriptor header;
+//		uint8_t bytes[0x2B];
+//	};
+//} __packed;
 
 struct gpu_block_header {
 	uint8_t block_type;
