@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 #include <ctype.h>
 
 #include "crc.h"
@@ -214,8 +217,6 @@ static struct default_ssd_cfg ssd_cfg = {
 void program_eeprom(const char * serial, struct gpu_cfg_descriptor * descriptor, size_t len, const char * outpath)
 {
 	crc_t crc;
-	size_t addr = 0;
-	int d, i;
   FILE *fptr;
 	printf("generating EEPROM\n");
 	memset(descriptor->serial, 0x00, GPU_SERIAL_LEN);
@@ -243,7 +244,6 @@ int main(int argc, char *argv[]) {
   char *serialvalue = NULL;
   char *pcbvalue = NULL;
   char *outfilename = "eeprom.bin";
-  int index;
   int c;
 
   opterr = 0;
