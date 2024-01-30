@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdint.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 #include <ctype.h>
 
 #include "crc.h"
