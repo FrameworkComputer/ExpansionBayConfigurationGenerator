@@ -6,11 +6,14 @@
 #include <unistd.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #include "crc.h"
 #include "gpio_defines.h"
 #include "config_definition.h"
 #define C_TO_K(temp_c) ((temp_c) + 273)
+
+static bool verbose = false;
 
 enum power_state {
 	/* Steady states */
@@ -213,71 +216,194 @@ static struct default_ssd_cfg ssd_cfg = {
 	.gpu_3v_5v_en = {.gpio = GPU_3V_5V_EN, .function = GPIO_FUNC_HIGH, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_S5},
 };
 
-void dump_descriptor(struct gpu_cfg_descriptor *desc)
+void print_descriptor(struct gpu_cfg_descriptor *desc)
 {
 
-	// Just for debugging
-	// printf("Descriptor\n");
-	// printf("  Magic         %02X%02X%02X%02X\n", (uint8_t)desc->magic[0], (uint8_t)desc->magic[1], (uint8_t)desc->magic[2], (uint8_t)desc->magic[3]);
-	// printf("  Length:       %d\n", desc->length);
-	// printf("  Desc Length:  %d\n", desc->descriptor_length);
-	// printf("  Desc CRC32:   %08X\n", desc->descriptor_crc32);
-	// printf("  CRC32:        %08X\n", desc->crc32);
-	// printf("  Desc Version: %d.%d\n", desc->descriptor_version_major, desc->descriptor_version_minor);
-	// printf("  HW Version:   %04X\n", desc->hardware_version);
-	// printf("  HW Rev:       %d\n", desc->hardware_revision);
-	// printf("  Serialnum:    %s\n", desc->serial);
-
-	printf("Serialnum:      %s\n", desc->serial);
-}
-
-void dump_gpu(struct default_gpu_cfg* gpu_cfg)
-{
-	printf("Type:           GPU\n");
-	switch (gpu_cfg->pcba_serial.gpu_subsys) {
-		case GPU_PCB:
-				printf("PCBA Serial:    %s\n", gpu_cfg->pcba_serial.serial);
-			break;
-		case GPU_LEFT_FAN:
-				printf("Left Fan SN:    %s\n", gpu_cfg->pcba_serial.serial);
-			break;
-		case GPU_RIGHT_FAN:
-				printf("Right Fan SN:   %s\n", gpu_cfg->pcba_serial.serial);
-			break;
-		case GPU_HOUSING:
-				printf("Housing SN:     %s\n", gpu_cfg->pcba_serial.serial);
-			break;
-		default:
-				printf("??? Serial:     %s\n", gpu_cfg->pcba_serial.serial);
-				break;
+	if (verbose) {
+		printf("Descriptor\n");
+		printf("  Magic         %02X%02X%02X%02X\n", (uint8_t)desc->magic[0], (uint8_t)desc->magic[1], (uint8_t)desc->magic[2], (uint8_t)desc->magic[3]);
+		printf("  Length:       %d\n", desc->length);
+		printf("  Desc Version: %d.%d\n", desc->descriptor_version_major, desc->descriptor_version_minor);
+		printf("  HW Version:   %04X\n", desc->hardware_version);
+		printf("  HW Rev:       %d\n", desc->hardware_revision);
+		printf("  Serialnum:    %s\n", desc->serial);
+		printf("  Desc Length:  %d\n", desc->descriptor_length);
+		printf("  Desc CRC32:   %08X\n", desc->descriptor_crc32);
+		printf("  CRC32:        %08X\n", desc->crc32);
+	} else {
+		printf("Serialnum:   %s\n", desc->serial);
 	}
 }
 
-void dump_ssd(struct default_ssd_cfg* ssd_cfg)
+void print_subsys(struct gpu_subsys_serial* subsys)
 {
-	printf("Type:           SSD\n");
+	printf("    Type:   ");
+	switch (subsys->gpu_subsys) {
+		case GPU_PCB:
+				printf("PCB\n");
+			break;
+		case GPU_LEFT_FAN:
+				printf("Left Fan\n");
+			break;
+		case GPU_RIGHT_FAN:
+				printf("Right Fan\n");
+			break;
+		case GPU_HOUSING:
+				printf("Housing\n");
+			break;
+		default:
+				printf("???\n");
+				break;
+	}
+	printf("    Serial: %s\n", subsys->serial);
 }
+
+void print_vendor(enum gpu_vendor vendor) {
+	switch (vendor) {
+		case GPU_VENDOR_INITIALIZING:
+			printf("Vendor Initializing\n");
+			break;
+		case GPU_FAN_ONLY:
+			printf("Fan Only\n");
+			break;
+		case GPU_AMD_R23M:
+			printf("AMD R23M GPU\n");
+			break;
+		case GPU_SSD:
+			printf("SSD\n");
+			break;
+		case GPU_PCIE_ACCESSORY:
+			printf("PCI-E Accessory\n");
+			break;
+		default:
+			printf("Invalid (%d)\n", vendor);
+			break;
+	}
+}
+
 
 void read_eeprom(const char * infilename)
 {
 	FILE *fptr;
 	fptr = fopen(infilename,"rb");
-	// TODO: gpu_cfg is bigger than ssd_cfg, that's why I read it into there.
-	// Should make it safer so that if we change the structures, the same still holds.
-	fread((void *)&gpu_cfg, sizeof(gpu_cfg), 1, fptr);
+
+	struct gpu_cfg_descriptor descriptor;
+	fread((void *)&descriptor, sizeof(descriptor), 1, fptr);
+
+	print_descriptor(&descriptor);
+
+	void *blocks = malloc(descriptor.descriptor_length);
+	if (!blocks) {
+		fclose(fptr);
+		return;
+	}
+	fread(blocks, descriptor.descriptor_length, 1, fptr);
 	fclose(fptr);
 
-	uint32_t len = gpu_cfg.descriptor.descriptor_length + sizeof(struct gpu_cfg_descriptor);
-	// TODO: Length comparison won't work if newer versions of the descriptors have different sizes
-	if (len == sizeof(struct default_gpu_cfg)) {
-		dump_descriptor((struct gpu_cfg_descriptor *)&gpu_cfg);
-		dump_gpu((struct default_gpu_cfg*) &gpu_cfg);
-	} else if (len == sizeof(struct default_ssd_cfg)) {
-		dump_descriptor((struct gpu_cfg_descriptor *)&gpu_cfg);
-		dump_ssd((struct default_ssd_cfg*) &gpu_cfg);
-	} else {
-		printf("Invalid descriptor. No body found (Len %d)\n", len);
+	int offset = 0;
+	int n = 0;
+	struct gpu_block_header *block_header;
+	while (offset < descriptor.descriptor_length) {
+		block_header = (struct gpu_block_header *)(blocks + offset);
+		void *block_body = blocks + offset + sizeof(struct gpu_block_header);
+
+		if (verbose) {
+			uint8_t *pcie;
+			struct gpu_cfg_fan *fan;
+			printf("Block %d\n", n);
+			printf("  Length: %d\n", block_header->block_length);
+			printf("  Type:   ");
+			switch (block_header->block_type) {
+				case GPUCFG_TYPE_UNINITIALIZED:
+					printf("Uninitialized\n");
+					break;
+				case GPUCFG_TYPE_GPIO:
+					printf("GPIO\n");
+					break;
+				case GPUCFG_TYPE_THERMAL_SENSOR:
+					printf("Thermal Sensor\n");
+					break;
+				case GPUCFG_TYPE_FAN:
+					fan = block_body;
+					printf("Fan\n");
+					printf("    ID:        %d\n", fan->idx);
+					printf("    Flags:     %d\n", fan->flags);
+					printf("    Min RPM:   %d\n",  fan->min_rpm);
+					printf("    Min Temp:  %d\n",  fan->min_temp);
+					printf("    Start RPM: %d\n",  fan->start_rpm);
+					printf("    Max RPM:   %d\n",  fan->max_rpm);
+					printf("    Max Temp:  %d\n",  fan->max_temp);
+					break;
+				case GPUCFG_TYPE_POWER:
+					printf("Power\n");
+					break;
+				case GPUCFG_TYPE_BATTERY:
+					printf("Battery\n");
+					break;
+				case GPUCFG_TYPE_PCIE:
+					printf("PCI-E\n");
+					pcie = block_body;
+					switch (*pcie) {
+						case PCIE_8X1:
+							printf("    Lanes: 8X1\n");
+							break;
+						case PCIE_4X1:
+							printf("    Lanes: 4X1\n");
+							break;
+						case PCIE_4X2:
+							printf("    Lanes: 4X2\n");
+							break;
+						default:
+							printf("    Invalid (%d)\n", *pcie);
+							break;
+					}
+					break;
+				case GPUCFG_TYPE_DPMUX:
+					printf("DP-MUX\n");
+					break;
+				case GPUCFG_TYPE_POWEREN:
+					printf("POWER-EN\n");
+					break;
+				case GPUCFG_TYPE_SUBSYS:
+					printf("Subsystem\n");
+					print_subsys((struct gpu_subsys_serial *)block_body);
+					break;
+				case GPUCFG_TYPE_VENDOR:
+					printf("Vendor\n");
+					printf("  Value:  ");
+					print_vendor(*(enum gpu_vendor *) block_body);
+					break;
+				case GPUCFG_TYPE_PD:
+					printf("PD\n");
+					break;
+				case GPUCFG_TYPE_GPUPWR:
+					printf("GPU Power\n");
+					break;
+				case GPUCFG_TYPE_CUSTOM_TEMP:
+					printf("Custom Temp\n");
+					break;
+				default:
+					printf("Unknown\n");
+					break;
+			}
+		} else {
+			if (block_header->block_type == GPUCFG_TYPE_SUBSYS) {
+				struct gpu_subsys_serial *subsys = block_body;
+				if (subsys->gpu_subsys == GPU_PCB) {
+					printf("PCBA Serial: %s\n", subsys->serial);
+				}
+			}
+			if (block_header->block_type == GPUCFG_TYPE_VENDOR) {
+				printf("Type:        ");
+				print_vendor(*(enum gpu_vendor *) block_body);
+			}
+		}
+
+		offset += sizeof(struct gpu_block_header) + block_header->block_length;
+		n++;
 	}
+
+	free(blocks);
 }
 
 void program_eeprom(const char * serial, struct gpu_cfg_descriptor * descriptor, size_t len, const char * outpath)
@@ -305,7 +431,7 @@ void program_eeprom(const char * serial, struct gpu_cfg_descriptor * descriptor,
 }
 
 int main(int argc, char *argv[]) {
- int gpuflag = 0;
+	int gpuflag = 0;
 	int ssdflag = 0;
 	char *serialvalue = NULL;
 	char *pcbvalue = NULL;
@@ -315,7 +441,7 @@ int main(int argc, char *argv[]) {
 
 	opterr = 0;
 
-	while ((c = getopt (argc, argv, "gds:p:o:i:")) != -1)
+	while ((c = getopt (argc, argv, "gdvs:p:o:i:")) != -1)
 	switch (c)
 	{
 	case 'g':
@@ -335,6 +461,9 @@ int main(int argc, char *argv[]) {
 		break;
 	case 'i':
 		infilename = optarg;
+		break;
+	case 'v':
+		verbose = true;
 		break;
 	case '?':
 		if (optopt == 'c')
@@ -359,7 +488,7 @@ int main(int argc, char *argv[]) {
 	printf("Descriptor Version: %d %d\n", 0, 1);
 
 	printf ("gpu = %d, ssd = %d, module SN = %s pcb SN = %s output file = %s\n",
-		gpuflag, ssdflag, serialvalue, pcbvalue, outfilename, infilename);
+		gpuflag, ssdflag, serialvalue, pcbvalue, outfilename);
 
 	if (gpuflag) {
 		if (pcbvalue) {

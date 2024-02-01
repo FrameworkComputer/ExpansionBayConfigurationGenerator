@@ -43,6 +43,9 @@ To double-check you can read the binary back from EEPROM and analyze it with the
 
 ```sh
 ./gpu_cfg_gen -i eeprom.bin
+
+# More verbose output
+./gpu_cfg_gen -i eeprom.bin -v
 ```
 
 # Build natively
