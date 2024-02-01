@@ -15,9 +15,9 @@
 enum power_state {
 	/* Steady states */
 	POWER_G3 = 0, /*
-		       * System is off (not technically all the way into G3,
-		       * which means totally unpowered...)
-		       */
+		* System is off (not technically all the way into G3,
+		which means totally unpowered...)
+		*/
 	POWER_S5, /* System is soft-off */
 	POWER_S4, /* System is suspended to disk */
 	POWER_S3, /* Suspend; RAM on, processor is asleep */
@@ -261,11 +261,11 @@ void dump_ssd(struct default_ssd_cfg* ssd_cfg)
 void read_eeprom(const char * infilename)
 {
 	FILE *fptr;
-  fptr = fopen(infilename,"rb");
+	fptr = fopen(infilename,"rb");
 	// TODO: gpu_cfg is bigger than ssd_cfg, that's why I read it into there.
 	// Should make it safer so that if we change the structures, the same still holds.
-  fread((void *)&gpu_cfg, sizeof(gpu_cfg), 1, fptr);
-  fclose(fptr);
+	fread((void *)&gpu_cfg, sizeof(gpu_cfg), 1, fptr);
+	fclose(fptr);
 
 	uint32_t len = gpu_cfg.descriptor.descriptor_length + sizeof(struct gpu_cfg_descriptor);
 	// TODO: Length comparison won't work if newer versions of the descriptors have different sizes
@@ -283,7 +283,7 @@ void read_eeprom(const char * infilename)
 void program_eeprom(const char * serial, struct gpu_cfg_descriptor * descriptor, size_t len, const char * outpath)
 {
 	crc_t crc;
-  FILE *fptr;
+	FILE *fptr;
 	printf("generating EEPROM\n");
 	memset(descriptor->serial, 0x00, GPU_SERIAL_LEN);
 	strncpy(descriptor->serial, serial, GPU_SERIAL_LEN);
@@ -298,79 +298,79 @@ void program_eeprom(const char * serial, struct gpu_cfg_descriptor * descriptor,
 
 	printf("writing EEPROM to %s\n", outpath);
 
-  fptr = fopen(outpath,"wb");
-  fwrite(descriptor, len, 1, fptr);
-  fclose(fptr);
+	fptr = fopen(outpath,"wb");
+	fwrite(descriptor, len, 1, fptr);
+	fclose(fptr);
 
 }
 
 int main(int argc, char *argv[]) {
  int gpuflag = 0;
-  int ssdflag = 0;
-  char *serialvalue = NULL;
-  char *pcbvalue = NULL;
-  char *outfilename = "eeprom.bin";
-  char *infilename = NULL;
-  int c;
+	int ssdflag = 0;
+	char *serialvalue = NULL;
+	char *pcbvalue = NULL;
+	char *outfilename = "eeprom.bin";
+	char *infilename = NULL;
+	int c;
 
-  opterr = 0;
+	opterr = 0;
 
-  while ((c = getopt (argc, argv, "gds:p:o:i:")) != -1)
-  switch (c)
-  {
-  case 'g':
-    gpuflag = 1;
-    break;
-  case 'd':
-    ssdflag = 1;
-    break;
-  case 's':
-    serialvalue = optarg;
-    break;
-  case 'p':
-    pcbvalue = optarg;
-    break;
-  case 'o':
-    outfilename = optarg;
-    break;
-  case 'i':
-    infilename = optarg;
-    break;
-  case '?':
-    if (optopt == 'c')
-      fprintf (stderr, "Option -%c requires an argument.\n", optopt);
-    else if (isprint (optopt))
-      fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-    else
-      fprintf (stderr,
-                "Unknown option character `\\x%x'.\n",
-                optopt);
-    return 1;
-  default:
-    abort ();
-  }
-  printf("Build: %s %s\n", __DATE__, __TIME__);
+	while ((c = getopt (argc, argv, "gds:p:o:i:")) != -1)
+	switch (c)
+	{
+	case 'g':
+		gpuflag = 1;
+		break;
+	case 'd':
+		ssdflag = 1;
+		break;
+	case 's':
+		serialvalue = optarg;
+		break;
+	case 'p':
+		pcbvalue = optarg;
+		break;
+	case 'o':
+		outfilename = optarg;
+		break;
+	case 'i':
+		infilename = optarg;
+		break;
+	case '?':
+		if (optopt == 'c')
+			fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+		else if (isprint (optopt))
+			fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+		else
+			fprintf (stderr,
+				"Unknown option character `\\x%x'.\n",
+				optopt);
+		return 1;
+	default:
+		abort ();
+	}
+	printf("Build: %s %s\n", __DATE__, __TIME__);
 
 	if (infilename) {
 		read_eeprom(infilename);
 		return 0;
 	}
 
-  printf("Descriptor Version: %d %d\n", 0, 1);
+	printf("Descriptor Version: %d %d\n", 0, 1);
 
-  printf ("gpu = %d, ssd = %d, module SN = %s pcb SN = %s output file = %s\n",
-        gpuflag, ssdflag, serialvalue, pcbvalue, outfilename, infilename);
+	printf ("gpu = %d, ssd = %d, module SN = %s pcb SN = %s output file = %s\n",
+		gpuflag, ssdflag, serialvalue, pcbvalue, outfilename, infilename);
 
-  if (gpuflag) {
-    if (pcbvalue) {
-      strncpy(gpu_cfg.pcba_serial.serial, pcbvalue, GPU_SERIAL_LEN);
-    }
-    program_eeprom(serialvalue, (void *)&gpu_cfg, sizeof(gpu_cfg), outfilename);
-  }
+	if (gpuflag) {
+		if (pcbvalue) {
+			strncpy(gpu_cfg.pcba_serial.serial, pcbvalue, GPU_SERIAL_LEN);
+		}
+		program_eeprom(serialvalue, (void *)&gpu_cfg, sizeof(gpu_cfg), outfilename);
+	}
 
-  if (ssdflag) {
-    program_eeprom(serialvalue, (void *)&ssd_cfg, sizeof(ssd_cfg), outfilename);
-  }
+	if (ssdflag) {
+		program_eeprom(serialvalue, (void *)&ssd_cfg, sizeof(ssd_cfg), outfilename);
+	}
 
 	return 0;
 }
