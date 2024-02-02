@@ -31,7 +31,7 @@ The application will generate a `.bin` file in the same directory with the EEPRO
 
 ## Different file name
 
-By default the generated fiel is called `eeprom.bin`, here's how to use a different one:
+By default the generated file is called `eeprom.bin`, here's how to use a different one:
 
 ```
 ./gpu_cfg_gen -d -s FRAKMBCP81331ASSY0 -o ssd.bin

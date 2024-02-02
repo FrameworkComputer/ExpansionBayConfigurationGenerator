@@ -12,6 +12,16 @@
 #include "gpio_defines.h"
 #include "config_definition.h"
 #define C_TO_K(temp_c) ((temp_c) + 273)
+#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
+#define BYTE_TO_BINARY(byte)  \
+	((byte) & 0x80 ? '1' : '0'), \
+	((byte) & 0x40 ? '1' : '0'), \
+	((byte) & 0x20 ? '1' : '0'), \
+	((byte) & 0x10 ? '1' : '0'), \
+	((byte) & 0x08 ? '1' : '0'), \
+	((byte) & 0x04 ? '1' : '0'), \
+	((byte) & 0x02 ? '1' : '0'), \
+	((byte) & 0x01 ? '1' : '0')
 
 static bool verbose = false;
 
@@ -258,6 +268,227 @@ void print_subsys(struct gpu_subsys_serial* subsys)
 	printf("    Serial: %s\n", subsys->serial);
 }
 
+void print_gpio(uint8_t block_length, struct gpu_cfg_gpio *block_body) {
+	uint8_t blocks = block_length / sizeof(struct gpu_cfg_gpio);
+	struct gpu_cfg_gpio *block;
+	for (int i = 0; i < blocks; i++) {
+		block = &block_body[i];
+		printf("  GPIO %d\n", block->gpio);
+		printf("    Name:        ");
+		switch (block->gpio) {
+			case GPU_1G1_GPIO0_EC:
+				printf("GPU_1G1_GPIO0_EC\n");
+				break;
+			case GPU_1H1_GPIO1_EC:
+				printf("GPU_1H1_GPIO1_EC\n");
+				break;
+			case GPU_2A2_GPIO2_EC:
+				printf("GPU_2A2_GPIO2_EC\n");
+				break;
+			case GPU_2L7_GPIO3_EC:
+				printf("GPU_2L7_GPIO3_EC\n");
+				break;
+			case GPU_2L5_TH_OVERTn:
+				printf("GPU_2L5_TH_OVERTn\n");
+				break;
+			case GPU_1F2_I2C_S5_INT:
+				printf("GPU_1F2_I2C_S5_INT\n");
+				break;
+			case GPU_1L1_DGPU_PWROK:
+				printf("GPU_1L1_DGPU_PWROK\n");
+				break;
+			case GPU_1C3_ALW_CLK:
+				printf("GPU_1C3_ALW_CLK\n");
+				break;
+			case GPU_1D3_ALW_DAT:
+				printf("GPU_1D3_ALW_DAT\n");
+				break;
+			case GPU_1F3_MUX1:
+				printf("GPU_1F3_MUX1\n");
+				break;
+			case GPU_1G3_MUX2:
+				printf("GPU_1G3_MUX2\n");
+				break;
+			case GPU_2B5_ALERTn:
+				printf("GPU_2B5_ALERTn\n");
+				break;
+			case GPU_EDP_MUX_SEL:
+				printf("GPU_EDP_MUX_SEL\n");
+				break;
+			case GPU_ECPWM_EN:
+				printf("GPU_ECPWM_EN\n");
+				break;
+			case GPU_PCIE_MUX_SEL:
+				printf("GPU_PCIE_MUX_SEL\n");
+				break;
+			case GPU_VSYS_EN:
+				printf("GPU_VSYS_EN\n");
+				break;
+			case GPU_VADP_EN:
+				printf("GPU_VADP_EN\n");
+				break;
+			case GPU_FAN_EN:
+				printf("GPU_FAN_EN\n");
+				break;
+			case GPU_3V_5V_EN:
+				printf("GPU_3V_5V_EN\n");
+				break;
+			default:
+				printf("Unknown\n");
+			break;
+		}
+		printf("    Function:    ");
+		switch (block->function) {
+			case GPIO_FUNC_HIGH:
+				printf("High\n");
+				break;
+			case GPIO_FUNC_TEMPFAULT:
+				printf("Tempfault\n");
+				break;
+			case GPIO_FUNC_ACDC:
+				printf("ACDC\n");
+				break;
+			case GPIO_FUNC_HPD:
+				printf("HPD\n");
+				break;
+			case GPIO_FUNC_PD_INT:
+				printf("PD_INT\n");
+				break;
+			case GPIO_FUNC_SSD1_POWER:
+				printf("SSD1_POWER\n");
+				break;
+			case GPIO_FUNC_SSD2_POWER:
+				printf("SSD2_POWER\n");
+				break;
+			case GPIO_FUNC_EC_PWM_EN:
+				printf("EC_PWM_EN\n");
+				break;
+			case GPIO_FUNC_EDP_MUX_SEL:
+				printf("EDP_MUX_SEL\n");
+				break;
+			case GPIO_FUNC_VSYS_EN:
+				printf("VSYS_EN\n");
+				break;
+			case GPIO_FUNC_VADP_EN:
+				printf("VADP_EN\n");
+				break;
+			case GPIO_FUNC_GPU_PWR:
+				printf("GPU Power\n");
+				break;
+			default:
+				printf("Unknown\n");
+				break;
+		}
+		printf("    Flags:       (");
+		if ((block->flags & GPIO_INPUT) != 0) {
+			printf("Input,");
+		}
+		if ((block->flags & GPIO_OUTPUT) != 0) {
+			printf("Output,");
+		}
+		if ((block->flags & GPIO_OUTPUT_INIT_LOW) != 0) {
+			printf("Low,");
+		}
+		if ((block->flags & GPIO_OUTPUT_INIT_HIGH) != 0) {
+			printf("High,");
+		}
+		if ((block->flags & GPIO_OUTPUT_INIT_LOGICAL) != 0) {
+			printf("Logical,");
+		}
+		printf(")\n");
+		// printf(""BYTE_TO_BINARY_PATTERN BYTE_TO_BINARY_PATTERN BYTE_TO_BINARY_PATTERN BYTE_TO_BINARY_PATTERN"\n",
+		// 	BYTE_TO_BINARY(block->flags),
+		// 	BYTE_TO_BINARY((block->flags >> 8) & 0xFF),
+		// 	BYTE_TO_BINARY((block->flags >> 16) & 0xFF),
+		// 	BYTE_TO_BINARY((block->flags >> 24) & 0xFF)
+		// 	);
+		
+		printf("    Power Domain:");
+		switch (block->power_domain) {
+			case POWER_G3:
+				printf("G3\n");
+				break;
+			case POWER_S5:
+				printf("S5\n");
+				break;
+			case POWER_S4:
+				printf("S4\n");
+				break;
+			case POWER_S3:
+				printf("S3\n");
+				break;
+			case POWER_S0:
+				printf("S0\n");
+				break;
+#if CONFIG_AP_PWRSEQ_S0IX
+			case POWER_S0ix:
+				printf("S0ix\n");
+				break;
+#endif
+			case POWER_G3S5:
+				printf("G3S5\n");
+				break;
+			case POWER_S5S3:
+				printf("S5S3\n");
+				break;
+			case POWER_S3S0:
+				printf("S3S0\n");
+				break;
+			case POWER_S0S3:
+				printf("S0S3\n");
+				break;
+			case POWER_S3S5:
+				printf("S3S5\n");
+				break;
+			case POWER_S5G3:
+				printf("S5G3\n");
+				break;
+			case POWER_S3S4:
+				printf("S3S4\n");
+				break;
+			case POWER_S4S3:
+				printf("S4S3\n");
+				break;
+			case POWER_S4S5:
+				printf("S4S5\n");
+				break;
+			case POWER_S5S4:
+				printf("S5S4\n");
+				break;
+#if CONFIG_AP_PWRSEQ_S0IX
+			case POWER_S0ixS0:
+				printf("S0ixS0\n");
+				break;
+			case POWER_S0S0ix:
+				printf("S0S0ix\n");
+				break;
+#endif
+			default:
+				printf("Unknown\n");
+				break;
+		}
+	}
+}
+
+void print_pd(struct gpu_subsys_pd *pd) {
+	printf("    Type:   ");
+	switch (pd->gpu_pd_type) {
+		case PD_TYPE_ETRON_EJ889I:
+			printf("EJ899I\n");
+			break;
+		default:
+			printf("Invalid (%d)\n", pd->gpu_pd_type);
+			break;
+	}
+	printf("    Address:     %d\n", pd->address);
+	printf("    Flags:       %d\n", pd->flags);
+	printf("    PDO:         %d\n", pd->pdo);
+	printf("    RDO:         %d\n", pd->rdo);
+	printf("    Power Domain:%d\n", pd->power_domain);
+	printf("    GPIO HPD:    %d\n", pd->gpio_hpd);
+	printf("    GPIO INT:    %d\n", pd->gpio_interrupt);
+}
+
 void print_vendor(enum gpu_vendor vendor) {
 	switch (vendor) {
 		case GPU_VENDOR_INITIALIZING:
@@ -310,8 +541,12 @@ void read_eeprom(const char * infilename)
 		if (verbose) {
 			uint8_t *pcie;
 			struct gpu_cfg_fan *fan;
-			printf("Block %d\n", n);
-			printf("  Length: %d\n", block_header->block_length);
+			struct gpu_cfg_power *power;
+			struct gpu_cfg_battery *battery;
+			struct gpu_cfg_custom_temp *custom_temp;
+			printf("---\n");
+			// printf("Block %d\n", n);
+			// printf("  Length: %d\n", block_header->block_length);
 			printf("  Type:   ");
 			switch (block_header->block_type) {
 				case GPUCFG_TYPE_UNINITIALIZED:
@@ -319,26 +554,44 @@ void read_eeprom(const char * infilename)
 					break;
 				case GPUCFG_TYPE_GPIO:
 					printf("GPIO\n");
+					print_gpio(block_header->block_length, (struct gpu_cfg_gpio *)block_body);
 					break;
 				case GPUCFG_TYPE_THERMAL_SENSOR:
 					printf("Thermal Sensor\n");
+					if (*((enum gpu_thermal_sensor *)block_body) == GPU_THERM_F75303) {
+						printf("    F75303\n");
+					} else {
+						printf("    Invalid\n");
+					}
 					break;
 				case GPUCFG_TYPE_FAN:
 					fan = block_body;
 					printf("Fan\n");
 					printf("    ID:        %d\n", fan->idx);
 					printf("    Flags:     %d\n", fan->flags);
-					printf("    Min RPM:   %d\n",  fan->min_rpm);
-					printf("    Min Temp:  %d\n",  fan->min_temp);
-					printf("    Start RPM: %d\n",  fan->start_rpm);
-					printf("    Max RPM:   %d\n",  fan->max_rpm);
-					printf("    Max Temp:  %d\n",  fan->max_temp);
+					printf("    Min RPM:   %d\n", fan->min_rpm);
+					printf("    Min Temp:  %d\n", fan->min_temp);
+					printf("    Start RPM: %d\n", fan->start_rpm);
+					printf("    Max RPM:   %d\n", fan->max_rpm);
+					printf("    Max Temp:  %d\n", fan->max_temp);
 					break;
 				case GPUCFG_TYPE_POWER:
+					power = block_body;
 					printf("Power\n");
+					printf("    Device ID:   %d\n", power->device_idx);
+					printf("    Battery:     %d\n", power->battery_power);
+					printf("    Average:     %d\n", power->average_power);
+					printf("    Long Term:   %d\n", power->long_term_power);
+					printf("    Short Term:  %d\n", power->short_term_power);
+					printf("    Peak:        %d\n", power->peak_power);
 					break;
 				case GPUCFG_TYPE_BATTERY:
+					battery = block_body;
 					printf("Battery\n");
+					printf("    Max Current: %d\n", battery->max_current);
+					printf("    Max Voltage: %dmV\n", battery->max_mv);
+					printf("    Min Voltage: %dmV\n", battery->min_mv);
+					printf("    Max Charge I:%d\n", battery->max_charge_current);
 					break;
 				case GPUCFG_TYPE_PCIE:
 					printf("PCI-E\n");
@@ -360,9 +613,11 @@ void read_eeprom(const char * infilename)
 					break;
 				case GPUCFG_TYPE_DPMUX:
 					printf("DP-MUX\n");
+					// TODO: Decode. Unused so far
 					break;
 				case GPUCFG_TYPE_POWEREN:
 					printf("POWER-EN\n");
+					// TODO: Decode. Unused so far
 					break;
 				case GPUCFG_TYPE_SUBSYS:
 					printf("Subsystem\n");
@@ -375,12 +630,18 @@ void read_eeprom(const char * infilename)
 					break;
 				case GPUCFG_TYPE_PD:
 					printf("PD\n");
+					print_pd((struct gpu_subsys_pd *) block_body);
 					break;
 				case GPUCFG_TYPE_GPUPWR:
 					printf("GPU Power\n");
+					// TODO: Decode. Unused so far
 					break;
 				case GPUCFG_TYPE_CUSTOM_TEMP:
+					custom_temp = block_body;
 					printf("Custom Temp\n");
+					printf("    ID:          %d\n", custom_temp->idx);
+					printf("    Temp Fan Off:%d\n", custom_temp->temp_fan_off);
+					printf("    Temp Fan Max:%d\n", custom_temp->temp_fan_max);
 					break;
 				default:
 					printf("Unknown\n");
