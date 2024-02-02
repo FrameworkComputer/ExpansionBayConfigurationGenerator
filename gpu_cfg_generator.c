@@ -22,6 +22,7 @@
 	((byte) & 0x04 ? '1' : '0'), \
 	((byte) & 0x02 ? '1' : '0'), \
 	((byte) & 0x01 ? '1' : '0')
+#define CONFIG_AP_PWRSEQ_S0IX 1
 
 static bool verbose = false;
 
