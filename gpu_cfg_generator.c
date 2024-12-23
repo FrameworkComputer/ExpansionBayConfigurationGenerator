@@ -96,7 +96,7 @@ struct default_gpu_cfg {
 
 } __packed;
 
-static struct default_gpu_cfg gpu_cfg = {
+static struct default_gpu_cfg amd_gpu_cfg = {
 	.descriptor = {
 		.magic = {0x32, 0xac, 0x00, 0x00},
 		.length = sizeof(struct gpu_cfg_descriptor),
@@ -153,6 +153,66 @@ static struct default_gpu_cfg gpu_cfg = {
 	.hdr8 = {.block_type = GPUCFG_TYPE_SUBSYS, .block_length = sizeof(struct gpu_subsys_serial)},
 	.pcba_serial = {.gpu_subsys = GPU_PCB, .serial = {'F', 'R', 'A', 'G', 'M', 'A', 'S', 'P', '8', '1',
 					'3', '3', '1', 'P', 'C', 'B', '0', '0', '\0', '\0'},}
+};
+
+
+static struct default_gpu_cfg nv_gpu_cfg = {
+	.descriptor = {
+		.magic = {0x32, 0xac, 0x00, 0x00},
+		.length = sizeof(struct gpu_cfg_descriptor),
+		.descriptor_version_major = 0,
+		.descriptor_version_minor = 1,
+		.hardware_version = 0x0004,
+		.hardware_revision = 0,
+		.serial = {'F', 'R', 'A', 'K', 'M', 'Q', 'C', 'P', '4', '1',
+					'5', '0', '0', 'A', 'S', 'S', 'Y', '0', '\0', '\0'},
+		.descriptor_length = sizeof(struct default_gpu_cfg) - sizeof(struct gpu_cfg_descriptor),
+		.descriptor_crc32 = 0,
+		.crc32 = 0
+	},
+	.hdr0 = {.block_type = GPUCFG_TYPE_PCIE, .block_length = sizeof(uint8_t)},
+	.pcie_cfg = PCIE_8X1,
+
+	.hdr1 = {.block_type = GPUCFG_TYPE_FAN, .block_length = sizeof(struct gpu_cfg_fan)},
+	.fan0_cfg = {.idx = 0, .flags = 0, .min_rpm = 1000, .start_rpm = 1000, .max_rpm = 4700},
+
+	.hdr2 = {.block_type = GPUCFG_TYPE_FAN, .block_length = sizeof(struct gpu_cfg_fan)},
+	.fan1_cfg = {.idx = 1, .flags = 0, .min_rpm = 1000, .start_rpm = 1000, .max_rpm = 4500},
+
+	.hdr3 = {.block_type = GPUCFG_TYPE_VENDOR, .block_length = sizeof(enum gpu_vendor)},
+	.vendor = GPU_NV_GN22,
+
+	.hdr4 = {.block_type = GPUCFG_TYPE_GPIO, .block_length = (sizeof(struct gpu_cfg_gpio) * 7)},
+	/* Critical temperature fault input */
+	.gpio0 = {.gpio = GPU_1G1_GPIO0_EC, .function = GPIO_FUNC_TEMPFAULT, .flags = GPIO_INPUT, .power_domain = POWER_S3},
+	/* DP HPD status from PD */
+	.gpio1 = {.gpio = GPU_1H1_GPIO1_EC, .function = GPIO_FUNC_HPD, .flags = GPIO_INPUT, .power_domain = POWER_S5},
+	/* AC/DC mode setting */
+	.gpio2 = {.gpio = GPU_2A2_GPIO2_EC, .function = GPIO_FUNC_ACDC, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_S3},
+	/* UNUSED */
+	.gpio3 = {.gpio = GPU_2L7_GPIO3_EC, .function = GPIO_FUNC_UNUSED, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_G3},
+	/* GPU_VSYS_EN */
+	.gpio_vsys = {.gpio = GPU_VSYS_EN, .function = GPIO_FUNC_GPU_PWR, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_S3},
+
+	.gpio_fan = {.gpio = GPU_FAN_EN, .function = GPIO_FUNC_HIGH, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_S0},
+
+	.gpu_3v_5v_en = {.gpio = GPU_3V_5V_EN, .function = GPIO_FUNC_HIGH, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_S5},
+
+	.hdr5 = {.block_type = GPUCFG_TYPE_PD, .block_length = sizeof(struct gpu_subsys_pd)},
+	.pd = {.gpu_pd_type = PD_TYPE_CCG8S, .address = 0x42,
+			.flags = 0, .pdo = 0, .rdo = 0, .power_domain = POWER_S5,
+			.gpio_hpd = GPU_GPIO_INVALID, .gpio_interrupt = GPU_1F2_I2C_S5_INT
+	},
+
+	.hdr6 = {.block_type = GPUCFG_TYPE_THERMAL_SENSOR, .block_length = sizeof(struct gpu_cfg_thermal)},
+	.therm = {.thermal_type = GPU_THERM_F75303, .address = 0x4D},
+
+	.hdr7 = {.block_type = GPUCFG_TYPE_CUSTOM_TEMP, .block_length = sizeof(struct gpu_cfg_custom_temp)},
+	.custom_temp = {.idx = 2, .temp_fan_off = C_TO_K(47), .temp_fan_max = C_TO_K(62)},
+
+	.hdr8 = {.block_type = GPUCFG_TYPE_SUBSYS, .block_length = sizeof(struct gpu_subsys_serial)},
+	.pcba_serial = {.gpu_subsys = GPU_PCB, .serial = {'F', 'R', 'A', 'K', 'H', 'Z', 'C', 'P', '4', '1',
+					'5', '0', '0', 'P', 'C', 'B', '0', '0', '\0', '\0'},}
 };
 
 struct default_ssd_cfg {
@@ -477,6 +537,9 @@ void print_pd(struct gpu_subsys_pd *pd) {
 		case PD_TYPE_ETRON_EJ889I:
 			printf("EJ899I\n");
 			break;
+		case PD_TYPE_CCG8S:
+			printf("CCG8S\n");
+			break;
 		default:
 			printf("Invalid (%d)\n", pd->gpu_pd_type);
 			break;
@@ -506,6 +569,9 @@ void print_vendor(enum gpu_vendor vendor) {
 			break;
 		case GPU_PCIE_ACCESSORY:
 			printf("PCI-E Accessory\n");
+			break;
+		case GPU_NV_GN22:
+			printf("Nvidia GN22\n");
 			break;
 		default:
 			printf("Invalid (%d)\n", vendor);
@@ -693,7 +759,9 @@ void program_eeprom(const char * serial, struct gpu_cfg_descriptor * descriptor,
 }
 
 int main(int argc, char *argv[]) {
-	int gpuflag = 0;
+	int amd_gpuflag = 0;
+	int nv_gpuflag = 0;
+
 	int ssdflag = 0;
 	char *serialvalue = NULL;
 	char *pcbvalue = NULL;
@@ -703,11 +771,14 @@ int main(int argc, char *argv[]) {
 
 	opterr = 0;
 
-	while ((c = getopt (argc, argv, "gdvs:p:o:i:")) != -1)
+	while ((c = getopt (argc, argv, "andvs:p:o:i:")) != -1)
 	switch (c)
 	{
-	case 'g':
-		gpuflag = 1;
+	case 'a':
+		amd_gpuflag = 1;
+		break;
+	case 'n':
+		nv_gpuflag = 1;
 		break;
 	case 'd':
 		ssdflag = 1;
@@ -749,14 +820,20 @@ int main(int argc, char *argv[]) {
 
 	printf("Descriptor Version: %d %d\n", 0, 1);
 
-	printf ("gpu = %d, ssd = %d, module SN = %s pcb SN = %s output file = %s\n",
-		gpuflag, ssdflag, serialvalue, pcbvalue, outfilename);
+	printf ("amd_gpu = %d, nv_gpu = %d, ssd = %d, module SN = %s pcb SN = %s output file = %s\n",
+		amd_gpuflag, nv_gpuflag, ssdflag, serialvalue, pcbvalue, outfilename);
 
-	if (gpuflag) {
+	if (amd_gpuflag) {
 		if (pcbvalue) {
-			strncpy(gpu_cfg.pcba_serial.serial, pcbvalue, GPU_SERIAL_LEN);
+			strncpy(amd_gpu_cfg.pcba_serial.serial, pcbvalue, GPU_SERIAL_LEN);
 		}
-		program_eeprom(serialvalue, (void *)&gpu_cfg, sizeof(gpu_cfg), outfilename);
+		program_eeprom(serialvalue, (void *)&amd_gpu_cfg, sizeof(amd_gpu_cfg), outfilename);
+	}
+	if (nv_gpuflag) {
+		if (pcbvalue) {
+			strncpy(nv_gpu_cfg.pcba_serial.serial, pcbvalue, GPU_SERIAL_LEN);
+		}
+		program_eeprom(serialvalue, (void *)&nv_gpu_cfg, sizeof(nv_gpu_cfg), outfilename);
 	}
 
 	if (ssdflag) {
