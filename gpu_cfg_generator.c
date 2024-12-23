@@ -544,10 +544,10 @@ void print_pd(struct gpu_subsys_pd *pd) {
 			printf("Invalid (%d)\n", pd->gpu_pd_type);
 			break;
 	}
-	printf("    Address:     %d\n", pd->address);
-	printf("    Flags:       %d\n", pd->flags);
-	printf("    PDO:         %d\n", pd->pdo);
-	printf("    RDO:         %d\n", pd->rdo);
+	printf("    Address:     0x%x\n", pd->address);
+	printf("    Flags:       0x%x\n", pd->flags);
+	printf("    PDO:         0x%x\n", pd->pdo);
+	printf("    RDO:         0x%x\n", pd->rdo);
 	printf("    Power Domain:%d\n", pd->power_domain);
 	printf("    GPIO HPD:    %d\n", pd->gpio_hpd);
 	printf("    GPIO INT:    %d\n", pd->gpio_interrupt);
