@@ -161,7 +161,7 @@ static struct default_gpu_cfg nv_gpu_cfg = {
 		.magic = {0x32, 0xac, 0x00, 0x00},
 		.length = sizeof(struct gpu_cfg_descriptor),
 		.descriptor_version_major = 0,
-		.descriptor_version_minor = 1,
+		.descriptor_version_minor = 2,
 		.hardware_version = 0x0004,
 		.hardware_revision = 0,
 		.serial = {'F', 'R', 'A', 'K', 'M', 'Q', 'C', 'P', '4', '1',
@@ -187,10 +187,10 @@ static struct default_gpu_cfg nv_gpu_cfg = {
 	.gpio0 = {.gpio = GPU_1G1_GPIO0_EC, .function = GPIO_FUNC_TEMPFAULT, .flags = GPIO_INPUT, .power_domain = POWER_S3},
 	/* DP HPD status from PD */
 	.gpio1 = {.gpio = GPU_1H1_GPIO1_EC, .function = GPIO_FUNC_HPD, .flags = GPIO_INPUT, .power_domain = POWER_S5},
-	/* AC/DC mode setting */
-	.gpio2 = {.gpio = GPU_2A2_GPIO2_EC, .function = GPIO_FUNC_ACDC, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_S3},
-	/* UNUSED */
-	.gpio3 = {.gpio = GPU_2L7_GPIO3_EC, .function = GPIO_FUNC_UNUSED, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_G3},
+	/* output from the GPU if it is throttling */
+	.gpio2 = {.gpio = GPU_2A2_GPIO2_EC, .function = GPIO_FUNC_IS_THROTTLING, .flags = GPIO_INPUT, .power_domain = POWER_S0},
+	/* DDS Mux CTRL  from dGPU */
+	.gpio3 = {.gpio = GPU_2L7_GPIO3_EC, .function = GPIO_FUNC_UNUSED, .flags = GPIO_INPUT, .power_domain = POWER_S0},
 	/* GPU_VSYS_EN */
 	.gpio_vsys = {.gpio = GPU_VSYS_EN, .function = GPIO_FUNC_GPU_PWR, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_S3},
 
@@ -201,7 +201,7 @@ static struct default_gpu_cfg nv_gpu_cfg = {
 	.hdr5 = {.block_type = GPUCFG_TYPE_PD, .block_length = sizeof(struct gpu_subsys_pd)},
 	.pd = {.gpu_pd_type = PD_TYPE_CCG8S, .address = 0x42,
 			.flags = 0, .pdo = 0, .rdo = 0, .power_domain = POWER_S5,
-			.gpio_hpd = GPU_GPIO_INVALID, .gpio_interrupt = GPU_1F2_I2C_S5_INT
+			.gpio_hpd = GPU_1H1_GPIO1_EC, .gpio_interrupt = GPU_1F2_I2C_S5_INT
 	},
 
 	.hdr6 = {.block_type = GPUCFG_TYPE_THERMAL_SENSOR, .block_length = sizeof(struct gpu_cfg_thermal)},
@@ -400,6 +400,9 @@ void print_gpio(uint8_t block_length, struct gpu_cfg_gpio *block_body) {
 		}
 		printf("    Function:    ");
 		switch (block->function) {
+			case GPIO_FUNC_UNUSED:
+				printf("Unused\n");
+				break;
 			case GPIO_FUNC_HIGH:
 				printf("High\n");
 				break;
@@ -435,6 +438,9 @@ void print_gpio(uint8_t block_length, struct gpu_cfg_gpio *block_body) {
 				break;
 			case GPIO_FUNC_GPU_PWR:
 				printf("GPU Power\n");
+				break;
+			case GPIO_FUNC_IS_THROTTLING:
+				printf ("Is Throttling\n");
 				break;
 			default:
 				printf("Unknown\n");
