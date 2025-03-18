@@ -196,11 +196,11 @@ static struct default_gpu_cfg nv_gpu_cfg = {
 
 	.gpio_fan = {.gpio = GPU_FAN_EN, .function = GPIO_FUNC_HIGH, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_S0},
 
-	.gpu_3v_5v_en = {.gpio = GPU_3V_5V_EN, .function = GPIO_FUNC_HIGH, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_S5},
+	.gpu_3v_5v_en = {.gpio = GPU_3V_5V_EN, .function = GPIO_FUNC_HIGH, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_G3},
 
 	.hdr5 = {.block_type = GPUCFG_TYPE_PD, .block_length = sizeof(struct gpu_subsys_pd)},
 	.pd = {.gpu_pd_type = PD_TYPE_CCG8S, .address = 0x42,
-			.flags = 0, .pdo = 0, .rdo = 0, .power_domain = POWER_S5,
+			.flags = 0, .pdo = 0, .rdo = 0, .power_domain = POWER_G3,
 			.gpio_hpd = GPU_1H1_GPIO1_EC, .gpio_interrupt = GPU_1F2_I2C_S5_INT
 	},
 
