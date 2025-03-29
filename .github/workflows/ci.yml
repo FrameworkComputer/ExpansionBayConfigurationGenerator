@@ -1,0 +1,37 @@
+name: CI
+on:
+  push:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build native
+      run: make native
+
+    - name: Install cosmopolitan
+      run: |
+        # Avoid launching MZ exe in wine
+        sudo wget -O /usr/bin/ape https://cosmo.zip/pub/cosmos/bin/ape-$(uname -m).elf
+        sudo chmod +x /usr/bin/ape
+        sudo sh -c "echo ':APE:M::MZqFpD::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register"
+        sudo sh -c "echo ':APE-jart:M::jartsr::/usr/bin/ape:' >/proc/sys/fs/binfmt_misc/register"
+
+        mkdir cosmopolitan
+        wget https://cosmo.zip/pub/cosmocc/cosmocc.zip
+        unzip -d cosmopolitan cosmocc.zip
+
+        # Make sure it works
+        ./cosmopolitan/bin/make --version
+
+    - name: Build cosmopolitan
+      run: make COSMOCC=./cosmopolitan
+
+    - name: Upload Cosmopolitan EXE
+      uses: actions/upload-artifact@v3
+      with:
+        name: gpu_cfg_gen.exe
+        path: gpu_cfg_gen.exe
