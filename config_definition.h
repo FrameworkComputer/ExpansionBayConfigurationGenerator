@@ -1,4 +1,5 @@
-
+#ifndef __CONFIG_DEFINITION_H
+#define __CONFIG_DEFINITION_H
 /*
  * The Framework bay descriptor consists of a header and a series of blocks
  * after the header that describe the function of the card.
@@ -19,6 +20,8 @@
  * -------------
  */
 #include <stddef.h>
+#include <stdint.h>
+
 #define GPU_MAX_BLOCK_LEN (256)
 #define GPU_SERIAL_LEN 20
 #define BUILD_ASSERT(dummy)
@@ -238,3 +241,6 @@ struct gpu_subsys_pd {
 	uint8_t gpio_hpd;
 	uint8_t gpio_interrupt;
 } __packed;
+
+
+#endif /* __CONFIG_DEFINITION_H */
