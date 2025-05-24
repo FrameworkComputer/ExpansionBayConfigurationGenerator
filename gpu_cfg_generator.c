@@ -487,6 +487,7 @@ int main(int argc, char *argv[]) {
 	int nv_gpuflag = 0;
 
 	int ssdflag = 0;
+	int pcieflag = 0;
 	char *serialvalue = "";
 	char *pcbvalue = "";
 	char *outfilename = "eeprom.bin";
@@ -495,7 +496,7 @@ int main(int argc, char *argv[]) {
 
 	opterr = 0;
 
-	while ((c = getopt (argc, argv, "andvs:p:o:i:")) != -1)
+	while ((c = getopt (argc, argv, "andbvs:p:o:i:")) != -1)
 	switch (c)
 	{
 	case 'a':
@@ -506,6 +507,9 @@ int main(int argc, char *argv[]) {
 		break;
 	case 'd':
 		ssdflag = 1;
+		break;
+	case 'b':
+		pcieflag = 1;
 		break;
 	case 's':
 		serialvalue = optarg;
@@ -562,6 +566,10 @@ int main(int argc, char *argv[]) {
 
 	if (ssdflag) {
 		program_eeprom(serialvalue, (void *)&ssd_cfg, sizeof(ssd_cfg), outfilename);
+	}
+
+	if (pcieflag) {
+		program_eeprom(serialvalue, (void *)&pcie_accessory_cfg, sizeof(pcie_accessory_cfg), outfilename);
 	}
 
 	return 0;
