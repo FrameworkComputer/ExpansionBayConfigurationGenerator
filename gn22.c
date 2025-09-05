@@ -1,3 +1,4 @@
+#include <config_definition.h>
 #include <gn22.h>
 
 struct default_gpu_cfg gn22_gpu_cfg = {
