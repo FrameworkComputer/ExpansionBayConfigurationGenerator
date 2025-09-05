@@ -1,7 +1,7 @@
 #include <config_definition.h>
 #include <ssd.h>
 
-struct default_ssd_cfg pcie_accessory_cfg = {
+struct default_pcie_cfg pcie_accessory_cfg = {
 	.descriptor = {
 		.magic = {0x32, 0xac, 0x00, 0x00},
 		.length = sizeof(struct gpu_cfg_descriptor),
@@ -11,7 +11,7 @@ struct default_ssd_cfg pcie_accessory_cfg = {
 		.hardware_revision = 0,
 		.serial = {'F', 'R', 'A', 'P', 'C', 'I', 'E', '0', '0', '0',
 					'0', '0', '0', 'T', 'E', 'S', 'T', '8', '\0', '\0'},
-		.descriptor_length = sizeof(struct default_ssd_cfg) - sizeof(struct gpu_cfg_descriptor),
+		.descriptor_length = sizeof(struct default_pcie_cfg) - sizeof(struct gpu_cfg_descriptor),
 		.descriptor_crc32 = 0,
 		.crc32 = 0
 	},

@@ -4,7 +4,7 @@
 #include <gpu_cfg_generator.h>
 
 
-struct default_ssd_cfg {
+struct default_pcie_cfg {
 	struct gpu_cfg_descriptor descriptor;
 
 	struct gpu_block_header hdr0;
@@ -32,7 +32,7 @@ struct default_ssd_cfg {
 } __packed;
 
 
-extern struct default_ssd_cfg pcie_accessory_cfg;
+extern struct default_pcie_cfg pcie_accessory_cfg;
 
 
 #endif /* __PCIE_H */
