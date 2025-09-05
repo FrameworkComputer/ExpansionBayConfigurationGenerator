@@ -9,7 +9,7 @@ struct default_gpu_cfg gn22_gpu_cfg = {
 		.descriptor_version_minor = 2,
 		.hardware_version = 0x0004,
 		.hardware_revision = 0,
-		.serial = {'F', 'R', 'A', 'K', 'M', 'Q', 'C', 'P', '4', '1',
+		.serial = {'F', 'R', 'A', 'K', 'M', 'Q', 'C', 'P', 'A', '1',
 					'5', '0', '0', 'A', 'S', 'S', 'Y', '0', '\0', '\0'},
 		.descriptor_length = sizeof(struct default_gpu_cfg) - sizeof(struct gpu_cfg_descriptor),
 		.descriptor_crc32 = 0,
@@ -38,8 +38,8 @@ struct default_gpu_cfg gn22_gpu_cfg = {
 	.gpio3 = {.gpio = GPU_2L7_GPIO3_EC, .function = GPIO_FUNC_UNUSED, .flags = GPIO_INPUT, .power_domain = POWER_S0},
 	/* GPU_VSYS_EN */
 	.gpio_vsys = {.gpio = GPU_VSYS_EN, .function = GPIO_FUNC_GPU_PWR, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_S3},
-        /* GPU_VADP_EN */
-        .gpu_vadp_en = {.gpio = GPU_VADP_EN, .function = GPIO_FUNC_HIGH, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_G3},
+	/* GPU_VADP_EN */
+	.gpu_vadp_en = {.gpio = GPU_VADP_EN, .function = GPIO_FUNC_HIGH, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_G3},
 
 	.gpio_fan = {.gpio = GPU_FAN_EN, .function = GPIO_FUNC_HIGH, .flags = GPIO_OUTPUT_LOW, .power_domain = POWER_S0},
 
@@ -58,6 +58,6 @@ struct default_gpu_cfg gn22_gpu_cfg = {
 	.custom_temp = {.idx = 2, .temp_fan_off = C_TO_K(47), .temp_fan_max = C_TO_K(62)},
 
 	.hdr8 = {.block_type = GPUCFG_TYPE_SUBSYS, .block_length = sizeof(struct gpu_subsys_serial)},
-	.pcba_serial = {.gpu_subsys = GPU_PCB, .serial = {'F', 'R', 'A', 'K', 'H', 'Z', 'C', 'P', '4', '1',
+	.pcba_serial = {.gpu_subsys = GPU_PCB, .serial = {'F', 'R', 'A', 'K', 'H', 'Z', 'C', 'P', 'A', '1',
 					'5', '0', '0', 'P', 'C', 'B', '0', '0', '\0', '\0'},}
 };
