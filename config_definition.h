@@ -1,4 +1,5 @@
-
+#ifndef __CONFIG_DEFINITION_H
+#define __CONFIG_DEFINITION_H
 /*
  * The Framework bay descriptor consists of a header and a series of blocks
  * after the header that describe the function of the card.
@@ -19,6 +20,8 @@
  * -------------
  */
 #include <stddef.h>
+#include <stdint.h>
+
 #define GPU_MAX_BLOCK_LEN (256)
 #define GPU_SERIAL_LEN 20
 #define BUILD_ASSERT(dummy)
@@ -126,6 +129,7 @@ enum gpu_gpio_purpose {
 	GPIO_FUNC_VSYS_EN,
 	GPIO_FUNC_VADP_EN,
 	GPIO_FUNC_GPU_PWR,
+	GPIO_FUNC_IS_THROTTLING,
 	GPIO_FUNC_MAX,
 };
 
@@ -216,13 +220,15 @@ enum gpu_vendor {
 	GPU_FAN_ONLY = 1,
 	GPU_AMD_R23M = 2,
 	GPU_SSD = 3,
-	GPU_PCIE_ACCESSORY = 4
+	GPU_PCIE_ACCESSORY = 4,
+	GPU_NV_GN22 = 5,
 } __packed;
 BUILD_ASSERT(sizeof(enum gpu_vendor) == sizeof(uint8_t));
 
 enum gpu_pd {
 	PD_TYPE_INVALID = 0,
 	PD_TYPE_ETRON_EJ889I = 1,
+	PD_TYPE_CCG8S = 2,
 	PD_TYPE_MAX = 0xFF
 } __packed;
 struct gpu_subsys_pd {
@@ -235,3 +241,6 @@ struct gpu_subsys_pd {
 	uint8_t gpio_hpd;
 	uint8_t gpio_interrupt;
 } __packed;
+
+
+#endif /* __CONFIG_DEFINITION_H */
