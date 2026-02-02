@@ -167,6 +167,9 @@ struct gpu_cfg_custom_temp {
 	uint16_t temp_fan_max;
 } __packed;
 
+enum gpu_cfg_fan_flag {
+	GPU_CFG_FAN_FLAG_ALWAYS_ON = 0x01,
+};
 struct gpu_cfg_fan {
 	uint8_t idx;
 	uint8_t flags;
