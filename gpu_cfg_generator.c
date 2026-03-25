@@ -489,6 +489,7 @@ void program_eeprom(const char * serial, struct gpu_cfg_descriptor * descriptor,
 int main(int argc, char *argv[]) {
 	int amd_gpuflag = 0;
 	int nv_gpuflag = 0;
+	int nv_newthermal_gpuflag = 0;
 
 	int ssdflag = 0;
 	int pcieflag = 0;
@@ -500,7 +501,7 @@ int main(int argc, char *argv[]) {
 
 	opterr = 0;
 
-	while ((c = getopt (argc, argv, "andbvs:p:o:i:")) != -1)
+	while ((c = getopt (argc, argv, "anmdbvs:p:o:i:")) != -1)
 	switch (c)
 	{
 	case 'a':
@@ -508,6 +509,9 @@ int main(int argc, char *argv[]) {
 		break;
 	case 'n':
 		nv_gpuflag = 1;
+		break;
+	case 'm':
+		nv_newthermal_gpuflag = 1;
 		break;
 	case 'd':
 		ssdflag = 1;
@@ -552,8 +556,8 @@ int main(int argc, char *argv[]) {
 
 	printf("Descriptor Version: %d %d\n", 0, 1);
 
-	printf ("amd_gpu = %d, nv_gpu = %d, ssd = %d, module SN = %s pcb SN = %s output file = %s\n",
-		amd_gpuflag, nv_gpuflag, ssdflag, serialvalue, pcbvalue, outfilename);
+	printf ("amd_gpu = %d, nv_gpu = %d, nv_newthermal_gpu = %d, ssd = %d, module SN = %s pcb SN = %s output file = %s\n",
+		amd_gpuflag, nv_gpuflag, nv_newthermal_gpuflag, ssdflag, serialvalue, pcbvalue, outfilename);
 
 	if (amd_gpuflag) {
 		if (pcbvalue) {
@@ -566,6 +570,13 @@ int main(int argc, char *argv[]) {
 			strncpy(gn22_gpu_cfg.pcba_serial.serial, pcbvalue, GPU_SERIAL_LEN);
 		}
 		program_eeprom(serialvalue, (void *)&gn22_gpu_cfg, sizeof(gn22_gpu_cfg), outfilename);
+	}
+
+	if (nv_newthermal_gpuflag) {
+		if (pcbvalue) {
+			strncpy(gn22_gpu_cfg_newthermal.pcba_serial.serial, pcbvalue, GPU_SERIAL_LEN);
+		}
+		program_eeprom(serialvalue, (void *)&gn22_gpu_cfg_newthermal, sizeof(gn22_gpu_cfg_newthermal), outfilename);
 	}
 
 	if (ssdflag) {

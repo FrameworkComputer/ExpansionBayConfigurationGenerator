@@ -59,6 +59,8 @@ enum power_state {
 #include <config_definition.h>
 #include <r23m.h>
 #include <gn22.h>
+#include <gn22_newthermal.h>
+
 #include <ssd.h>
 #include <pcie.h>
 
