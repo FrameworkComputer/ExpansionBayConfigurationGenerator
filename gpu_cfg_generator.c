@@ -1,6 +1,10 @@
 #include <gpu_cfg_generator.h>
 #include "crc.h"
 
+#ifndef GIT_HASH
+#define GIT_HASH "unknown"
+#endif
+
 
 static bool verbose = false;
 
@@ -539,7 +543,7 @@ int main(int argc, char *argv[]) {
 	default:
 		abort ();
 	}
-	printf("Build: %s %s\n", __DATE__, __TIME__);
+	printf("Build: %s %s (%s)\n", __DATE__, __TIME__, GIT_HASH);
 
 	if (infilename) {
 		read_eeprom(infilename);
