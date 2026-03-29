@@ -10,11 +10,13 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <assert.h>
 
 
 #include "gpio_defines.h"
 #include "config_definition.h"
 #define C_TO_K(temp_c) ((temp_c) + 273)
+#define K_TO_C(temp_k) ((temp_k) - 273)
 #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
 #define BYTE_TO_BINARY(byte)  \
 	((byte) & 0x80 ? '1' : '0'), \

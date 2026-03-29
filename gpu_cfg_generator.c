@@ -339,7 +339,10 @@ void read_eeprom(const char * infilename)
 			struct gpu_cfg_power *power;
 			struct gpu_cfg_battery *battery;
 			struct gpu_cfg_custom_temp *custom_temp;
-			printf("---\n");
+			printf("--- Offset 0x%lX \tLength %d\n",\
+				offset + sizeof(descriptor),\
+				block_header->block_length);
+
 			// printf("Block %d\n", n);
 			// printf("  Length: %d\n", block_header->block_length);
 			printf("  Type:   ");
@@ -435,8 +438,8 @@ void read_eeprom(const char * infilename)
 					custom_temp = block_body;
 					printf("Custom Temp\n");
 					printf("    ID:          %d\n", custom_temp->idx);
-					printf("    Temp Fan Off:%d\n", custom_temp->temp_fan_off);
-					printf("    Temp Fan Max:%d\n", custom_temp->temp_fan_max);
+					printf("    Temp Fan Off:%d (%dC)\n", custom_temp->temp_fan_off, K_TO_C(custom_temp->temp_fan_off));
+					printf("    Temp Fan Max:%d (%dC)\n", custom_temp->temp_fan_max, K_TO_C(custom_temp->temp_fan_max));
 					break;
 				default:
 					printf("Unknown\n");
@@ -459,6 +462,10 @@ void read_eeprom(const char * infilename)
 		n++;
 	}
 
+	if (offset > descriptor.descriptor_length) {
+		printf("Error: Block length exceeds descriptor length\n");
+	}
+
 	free(blocks);
 }
 
@@ -477,6 +484,9 @@ void program_eeprom(const char * serial, struct gpu_cfg_descriptor * descriptor,
 	crc = crc_init();
 	crc = crc_update(crc, descriptor, sizeof(struct gpu_cfg_descriptor)-sizeof(uint32_t));
 	descriptor->crc32 = crc_finalize(crc);
+
+
+	assert((descriptor->length + descriptor->descriptor_length) == len);
 
 	printf("writing EEPROM to %s\n", outpath);
 
