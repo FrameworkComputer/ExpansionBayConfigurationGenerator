@@ -7,7 +7,7 @@ struct gn22_newthermal_gpu_cfg gn22_gpu_cfg_newthermal = {
 		.length = sizeof(struct gpu_cfg_descriptor),
 		.descriptor_version_major = 0,
 		.descriptor_version_minor = 3,
-		.hardware_version = 0x0004,
+		.hardware_version = 0x0005,
 		.hardware_revision = 0,
 		.serial = {'F', 'R', 'A', 'K', 'M', 'Q', 'C', 'P', 'A', '1',
 					'5', '0', '0', 'A', 'S', 'S', 'Y', '0', '\0', '\0'},
