@@ -51,6 +51,18 @@ void print_subsys(struct gpu_subsys_serial* subsys)
 	printf("    Serial: %s\n", subsys->serial);
 }
 
+void print_custom_temp(uint8_t block_length, struct gpu_cfg_custom_temp *block_body) {
+	uint8_t blocks = block_length / sizeof(struct gpu_cfg_custom_temp);
+	struct gpu_cfg_custom_temp *block;
+	for (int i = 0; i < blocks; i++) {
+		block = &block_body[i];
+
+		printf("    ID:          %d\n", block->idx);
+		printf("    Temp Fan Off:%d (%dC)\n", block->temp_fan_off, K_TO_C(block->temp_fan_off));
+		printf("    Temp Fan Max:%d (%dC)\n", block->temp_fan_max, K_TO_C(block->temp_fan_max));
+	}
+}
+
 void print_gpio(uint8_t block_length, struct gpu_cfg_gpio *block_body) {
 	uint8_t blocks = block_length / sizeof(struct gpu_cfg_gpio);
 	struct gpu_cfg_gpio *block;
@@ -338,7 +350,6 @@ void read_eeprom(const char * infilename)
 			struct gpu_cfg_fan *fan;
 			struct gpu_cfg_power *power;
 			struct gpu_cfg_battery *battery;
-			struct gpu_cfg_custom_temp *custom_temp;
 			printf("--- Offset 0x%lX \tLength %d\n",\
 				offset + sizeof(descriptor),\
 				block_header->block_length);
@@ -435,11 +446,8 @@ void read_eeprom(const char * infilename)
 					// TODO: Decode. Unused so far
 					break;
 				case GPUCFG_TYPE_CUSTOM_TEMP:
-					custom_temp = block_body;
 					printf("Custom Temp\n");
-					printf("    ID:          %d\n", custom_temp->idx);
-					printf("    Temp Fan Off:%d (%dC)\n", custom_temp->temp_fan_off, K_TO_C(custom_temp->temp_fan_off));
-					printf("    Temp Fan Max:%d (%dC)\n", custom_temp->temp_fan_max, K_TO_C(custom_temp->temp_fan_max));
+					print_custom_temp(block_header->block_length, (struct gpu_cfg_custom_temp *)block_body);
 					break;
 				default:
 					printf("Unknown\n");
