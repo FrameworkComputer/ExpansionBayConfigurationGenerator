@@ -54,9 +54,8 @@ struct gn22_newthermal_gpu_cfg gn22_gpu_cfg_newthermal = {
 	.hdr6 = {.block_type = GPUCFG_TYPE_THERMAL_SENSOR, .block_length = sizeof(struct gpu_cfg_thermal)},
 	.therm = {.thermal_type = GPU_THERM_F75303, .address = 0x4D},
 
-	.hdr7 = {.block_type = GPUCFG_TYPE_CUSTOM_TEMP, .block_length = sizeof(struct gpu_cfg_custom_temp) * 2},
-	.custom_temp = {.idx = CUSTOM_TEMP_temp_sensor_apu, .temp_fan_off = C_TO_K(47), .temp_fan_max = C_TO_K(62)},
-	.custom_temp2 = {.idx = CUSTOM_TEMP_temp_sensor_gpu_die, .temp_fan_off = C_TO_K(70), .temp_fan_max = C_TO_K(90)},
+	.hdr7 = {.block_type = GPUCFG_TYPE_CUSTOM_TEMP, .block_length = sizeof(struct gpu_cfg_custom_temp) * 1},
+	.custom_temp = {.idx = CUSTOM_TEMP_temp_sensor_apu, .temp_fan_off = C_TO_K(48), .temp_fan_max = C_TO_K(68)},
 
 	.hdr9 = {.block_type = GPUCFG_TYPE_SUBSYS, .block_length = sizeof(struct gpu_subsys_serial)},
 	.pcba_serial = {.gpu_subsys = GPU_PCB, .serial = {'F', 'R', 'A', 'K', 'H', 'Z', 'C', 'P', 'A', '1',

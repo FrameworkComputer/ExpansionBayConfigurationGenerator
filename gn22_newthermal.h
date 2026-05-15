@@ -38,7 +38,6 @@ struct gn22_newthermal_gpu_cfg {
 
 	struct gpu_block_header hdr7;
 	struct gpu_cfg_custom_temp custom_temp;
-	struct gpu_cfg_custom_temp custom_temp2;
 
 	struct gpu_block_header hdr9;
 	struct gpu_subsys_serial pcba_serial;
