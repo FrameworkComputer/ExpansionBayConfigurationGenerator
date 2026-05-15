@@ -11,7 +11,7 @@ gpu_cfg_generator: gpu_cfg_generator.c gpu_cfg_generator.h
 	$(COSMOCC)/bin/cosmocc -o gpu_cfg_gen *.c -I ./ -DGIT_HASH=\"$(GIT_HASH)\"
 
 native: gpu_cfg_generator.c gpu_cfg_generator.h
-	$(CC) -o gpu_cfg_gen *.c -Wall -I ./ -DGIT_HASH=\"$(GIT_HASH)\"
+	$(CC) -o gpu_cfg_gen *.c -Wall -I ./ -g -DGIT_HASH=\"$(GIT_HASH)\"
 	
 	
 clean :

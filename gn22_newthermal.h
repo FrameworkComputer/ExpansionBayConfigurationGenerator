@@ -46,5 +46,6 @@ struct gn22_newthermal_gpu_cfg {
 } __packed;
 extern struct gn22_newthermal_gpu_cfg gn22_gpu_cfg_newthermal;
 
+void gn22_newthermal_gpu_cfg_write_pcb(char * serial);
 
 #endif /* __GN22_NEWTHERMAL_H */

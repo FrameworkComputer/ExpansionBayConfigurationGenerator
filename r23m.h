@@ -47,5 +47,6 @@ struct default_gpu_cfg {
 
 extern struct default_gpu_cfg r23m_gpu_cfg;
 
+void r23m_gpu_cfg_write_pcb(char * serial);
 
 #endif /* __R23M_H */
