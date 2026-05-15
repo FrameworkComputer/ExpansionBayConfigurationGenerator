@@ -161,6 +161,17 @@ struct gpu_cfg_thermal {
 	uint32_t reserved2;
 } __packed;
 
+enum custom_temp_idx_t {
+	CUSTOM_TEMP_ambient_f75303 = 0,
+	CUSTOM_TEMP_charger_f75303 = 1,
+	CUSTOM_TEMP_temp_sensor_apu = 2,
+	CUSTOM_TEMP_temp_sensor_apu_die = 3,
+	CUSTOM_TEMP_gpu_ambient_f75303 = 4,
+	CUSTOM_TEMP_temp_sensor_gpu = 5,
+	CUSTOM_TEMP_gpu_vram_f75303 = 6,
+	CUSTOM_TEMP_temp_sensor_gpu_die = 7,
+	CUSTOM_TEMP_MAX = 255
+};
 struct gpu_cfg_custom_temp {
 	uint8_t idx;
 	uint16_t temp_fan_off;

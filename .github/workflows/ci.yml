@@ -5,9 +5,9 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
 
     - name: Build native
       run: make native
@@ -31,7 +31,13 @@ jobs:
       run: make COSMOCC=./cosmopolitan
 
     - name: Upload Cosmopolitan EXE
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: gpu_cfg_gen.exe
         path: gpu_cfg_gen.exe
+
+    - name: Upload Linux
+      uses: actions/upload-artifact@v6
+      with:
+        name: gpu_cfg_gen
+        path: gpu_cfg_gen

@@ -51,6 +51,18 @@ void print_subsys(struct gpu_subsys_serial* subsys)
 	printf("    Serial: %s\n", subsys->serial);
 }
 
+void print_custom_temp(uint8_t block_length, struct gpu_cfg_custom_temp *block_body) {
+	uint8_t blocks = block_length / sizeof(struct gpu_cfg_custom_temp);
+	struct gpu_cfg_custom_temp *block;
+	for (int i = 0; i < blocks; i++) {
+		block = &block_body[i];
+
+		printf("    ID:          %d\n", block->idx);
+		printf("    Temp Fan Off:%d (%dC)\n", block->temp_fan_off, K_TO_C(block->temp_fan_off));
+		printf("    Temp Fan Max:%d (%dC)\n", block->temp_fan_max, K_TO_C(block->temp_fan_max));
+	}
+}
+
 void print_gpio(uint8_t block_length, struct gpu_cfg_gpio *block_body) {
 	uint8_t blocks = block_length / sizeof(struct gpu_cfg_gpio);
 	struct gpu_cfg_gpio *block;
@@ -338,8 +350,10 @@ void read_eeprom(const char * infilename)
 			struct gpu_cfg_fan *fan;
 			struct gpu_cfg_power *power;
 			struct gpu_cfg_battery *battery;
-			struct gpu_cfg_custom_temp *custom_temp;
-			printf("---\n");
+			printf("--- Offset 0x%lX \tLength %d\n",\
+				offset + sizeof(descriptor),\
+				block_header->block_length);
+
 			// printf("Block %d\n", n);
 			// printf("  Length: %d\n", block_header->block_length);
 			printf("  Type:   ");
@@ -432,11 +446,8 @@ void read_eeprom(const char * infilename)
 					// TODO: Decode. Unused so far
 					break;
 				case GPUCFG_TYPE_CUSTOM_TEMP:
-					custom_temp = block_body;
 					printf("Custom Temp\n");
-					printf("    ID:          %d\n", custom_temp->idx);
-					printf("    Temp Fan Off:%d\n", custom_temp->temp_fan_off);
-					printf("    Temp Fan Max:%d\n", custom_temp->temp_fan_max);
+					print_custom_temp(block_header->block_length, (struct gpu_cfg_custom_temp *)block_body);
 					break;
 				default:
 					printf("Unknown\n");
@@ -459,6 +470,10 @@ void read_eeprom(const char * infilename)
 		n++;
 	}
 
+	if (offset > descriptor.descriptor_length) {
+		printf("Error: Block length exceeds descriptor length\n");
+	}
+
 	free(blocks);
 }
 
@@ -478,6 +493,9 @@ void program_eeprom(const char * serial, struct gpu_cfg_descriptor * descriptor,
 	crc = crc_update(crc, descriptor, sizeof(struct gpu_cfg_descriptor)-sizeof(uint32_t));
 	descriptor->crc32 = crc_finalize(crc);
 
+
+	assert((descriptor->length + descriptor->descriptor_length) == len);
+
 	printf("writing EEPROM to %s\n", outpath);
 
 	fptr = fopen(outpath,"wb");
@@ -489,6 +507,7 @@ void program_eeprom(const char * serial, struct gpu_cfg_descriptor * descriptor,
 int main(int argc, char *argv[]) {
 	int amd_gpuflag = 0;
 	int nv_gpuflag = 0;
+	int nv_newthermal_gpuflag = 0;
 
 	int ssdflag = 0;
 	int pcieflag = 0;
@@ -500,7 +519,7 @@ int main(int argc, char *argv[]) {
 
 	opterr = 0;
 
-	while ((c = getopt (argc, argv, "andbvs:p:o:i:")) != -1)
+	while ((c = getopt (argc, argv, "anmdbvs:p:o:i:")) != -1)
 	switch (c)
 	{
 	case 'a':
@@ -508,6 +527,9 @@ int main(int argc, char *argv[]) {
 		break;
 	case 'n':
 		nv_gpuflag = 1;
+		break;
+	case 'm':
+		nv_newthermal_gpuflag = 1;
 		break;
 	case 'd':
 		ssdflag = 1;
@@ -552,8 +574,8 @@ int main(int argc, char *argv[]) {
 
 	printf("Descriptor Version: %d %d\n", 0, 1);
 
-	printf ("amd_gpu = %d, nv_gpu = %d, ssd = %d, module SN = %s pcb SN = %s output file = %s\n",
-		amd_gpuflag, nv_gpuflag, ssdflag, serialvalue, pcbvalue, outfilename);
+	printf ("amd_gpu = %d, nv_gpu = %d, nv_newthermal_gpu = %d, ssd = %d, module SN = %s pcb SN = %s output file = %s\n",
+		amd_gpuflag, nv_gpuflag, nv_newthermal_gpuflag, ssdflag, serialvalue, pcbvalue, outfilename);
 
 	if (amd_gpuflag) {
 		if (pcbvalue) {
@@ -566,6 +588,13 @@ int main(int argc, char *argv[]) {
 			strncpy(gn22_gpu_cfg.pcba_serial.serial, pcbvalue, GPU_SERIAL_LEN);
 		}
 		program_eeprom(serialvalue, (void *)&gn22_gpu_cfg, sizeof(gn22_gpu_cfg), outfilename);
+	}
+
+	if (nv_newthermal_gpuflag) {
+		if (pcbvalue) {
+			strncpy(gn22_gpu_cfg_newthermal.pcba_serial.serial, pcbvalue, GPU_SERIAL_LEN);
+		}
+		program_eeprom(serialvalue, (void *)&gn22_gpu_cfg_newthermal, sizeof(gn22_gpu_cfg_newthermal), outfilename);
 	}
 
 	if (ssdflag) {
