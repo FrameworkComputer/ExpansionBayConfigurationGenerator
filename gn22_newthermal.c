@@ -61,3 +61,8 @@ struct gn22_newthermal_gpu_cfg gn22_gpu_cfg_newthermal = {
 	.pcba_serial = {.gpu_subsys = GPU_PCB, .serial = {'F', 'R', 'A', 'K', 'H', 'Z', 'C', 'P', 'A', '1',
 					'5', '0', '0', 'P', 'C', 'B', '0', '0', '\0', '\0'},}
 };
+
+void gn22_newthermal_gpu_cfg_write_pcb(char * serial)
+{
+	strncpy(gn22_gpu_cfg_newthermal.pcba_serial.serial, serial, GPU_SERIAL_LEN);
+}

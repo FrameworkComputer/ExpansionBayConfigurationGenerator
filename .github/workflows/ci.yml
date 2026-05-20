@@ -41,3 +41,31 @@ jobs:
       with:
         name: gpu_cfg_gen
         path: gpu_cfg_gen
+
+  test:
+    name: Native tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Build native
+      run: make native
+
+    - name: Build native
+      run: make native
+
+    - name: Try generating
+      run: |
+        ./gpu_cfg_gen -t AMDR23 -s FRAKMBCP81331ASSY0 -p FRAGMASP81331PCB00 -o amd.bin
+        ./gpu_cfg_gen -t NVGN22 -s FRAKMQCP41500ASSY0 -p FRAKHZCP41500PCB00 -o nvidia.bin
+        ./gpu_cfg_gen -t NVGN22_NEWTHERMAL -s FRAKMQCP41500ASSY0 -p FRAKHZCP41500PCB00 -o nvidia.bin
+        ./gpu_cfg_gen -t SSD -s FRAKMBCP81331ASSY0 -o ssd.bin
+        ./gpu_cfg_gen -t PCIE -s FRAKMBCP81331ASSY0 -o pcie.bin
+
+    - name: Try parsing
+      run: |
+        ./gpu_cfg_gen -i amd.bin
+        ./gpu_cfg_gen -i nvidia.bin
+        ./gpu_cfg_gen -i nvidia.bin
+        ./gpu_cfg_gen -i ssd.bin
+        ./gpu_cfg_gen -i pcie.bin

@@ -504,38 +504,39 @@ void program_eeprom(const char * serial, struct gpu_cfg_descriptor * descriptor,
 
 }
 
-int main(int argc, char *argv[]) {
-	int amd_gpuflag = 0;
-	int nv_gpuflag = 0;
-	int nv_newthermal_gpuflag = 0;
+struct eeprom_target {
+	const char * name;
+	struct gpu_cfg_descriptor * descriptor;
+	size_t length;
+	void (*pcbwritefn)(char * serial);
+};
 
-	int ssdflag = 0;
-	int pcieflag = 0;
+struct eeprom_target programming_targets [] = {
+	{"AMDR23", (void*)&r23m_gpu_cfg, sizeof(r23m_gpu_cfg), r23m_gpu_cfg_write_pcb},
+	{"NVGN22", (void*)&gn22_gpu_cfg, sizeof(gn22_gpu_cfg), gn22_gpu_cfg_write_pcb},
+	{"NVGN22_NEWTHERMAL", (void*)&gn22_gpu_cfg_newthermal, sizeof(gn22_gpu_cfg_newthermal), gn22_newthermal_gpu_cfg_write_pcb},
+	{"SSD", (void*)&ssd_cfg, sizeof(ssd_cfg)},
+	{"PCIE", (void*)&pcie_accessory_cfg, sizeof(pcie_accessory_cfg)},
+};
+
+int main(int argc, char *argv[]) {
+	int i;
+
+	char *targetvalue = "";
+
 	char *serialvalue = "";
-	char *pcbvalue = "";
+	char *pcbvalue = NULL;
 	char *outfilename = "eeprom.bin";
 	char *infilename = NULL;
 	int c;
 
 	opterr = 0;
 
-	while ((c = getopt (argc, argv, "anmdbvs:p:o:i:")) != -1)
+	while ((c = getopt (argc, argv, "hvs:p:o:i:t:")) != -1)
 	switch (c)
 	{
-	case 'a':
-		amd_gpuflag = 1;
-		break;
-	case 'n':
-		nv_gpuflag = 1;
-		break;
-	case 'm':
-		nv_newthermal_gpuflag = 1;
-		break;
-	case 'd':
-		ssdflag = 1;
-		break;
-	case 'b':
-		pcieflag = 1;
+	case 't':
+		targetvalue = optarg;
 		break;
 	case 's':
 		serialvalue = optarg;
@@ -552,6 +553,20 @@ int main(int argc, char *argv[]) {
 	case 'v':
 		verbose = true;
 		break;
+	case 'h':
+		printf("Build: %s %s (%s)\n", __DATE__, __TIME__, GIT_HASH);
+		printf("    -t: Allowed targets:\n");
+		for(i = 0; i < (sizeof(programming_targets) / sizeof(struct eeprom_target)); i++)
+		{
+			printf("       %s\n", programming_targets[i].name);
+		}
+		printf("    -s <18 digit serial>\n");
+		printf("    -p <18 digit PCB serial if defined>\n");
+		printf("    -o <output file name>\n");
+		printf("    -i <input file name> - this will parse the input file and print information\n");
+		printf("    -v - Enable verbose mode, useful with -i\n");
+		return 0;
+		break;
 	case '?':
 		if (optopt == 'c')
 			fprintf (stderr, "Option -%c requires an argument.\n", optopt);
@@ -563,6 +578,7 @@ int main(int argc, char *argv[]) {
 				optopt);
 		return 1;
 	default:
+
 		abort ();
 	}
 	printf("Build: %s %s (%s)\n", __DATE__, __TIME__, GIT_HASH);
@@ -574,36 +590,23 @@ int main(int argc, char *argv[]) {
 
 	printf("Descriptor Version: %d %d\n", 0, 1);
 
-	printf ("amd_gpu = %d, nv_gpu = %d, nv_newthermal_gpu = %d, ssd = %d, module SN = %s pcb SN = %s output file = %s\n",
-		amd_gpuflag, nv_gpuflag, nv_newthermal_gpuflag, ssdflag, serialvalue, pcbvalue, outfilename);
-
-	if (amd_gpuflag) {
-		if (pcbvalue) {
-			strncpy(r23m_gpu_cfg.pcba_serial.serial, pcbvalue, GPU_SERIAL_LEN);
+	for(i = 0; i < (sizeof(programming_targets) / sizeof(struct eeprom_target)); i++)
+	{
+		if (strcmp(programming_targets[i].name, targetvalue) == 0)
+		{
+			printf("Will generate based on %s\n", programming_targets[i].name);
+			if (pcbvalue) {
+				if (programming_targets[i].pcbwritefn) {
+					programming_targets[i].pcbwritefn(pcbvalue);
+				} else {
+					printf("This config does not support PCB Serial\n");
+				}
+			}
+			program_eeprom(serialvalue, (void *)programming_targets[i].descriptor, programming_targets[i].length, outfilename);
+			return 0;
 		}
-		program_eeprom(serialvalue, (void *)&r23m_gpu_cfg, sizeof(r23m_gpu_cfg), outfilename);
 	}
-	if (nv_gpuflag) {
-		if (pcbvalue) {
-			strncpy(gn22_gpu_cfg.pcba_serial.serial, pcbvalue, GPU_SERIAL_LEN);
-		}
-		program_eeprom(serialvalue, (void *)&gn22_gpu_cfg, sizeof(gn22_gpu_cfg), outfilename);
-	}
+	printf("Could not find a valid programming target, try -h for valid targets\n");
 
-	if (nv_newthermal_gpuflag) {
-		if (pcbvalue) {
-			strncpy(gn22_gpu_cfg_newthermal.pcba_serial.serial, pcbvalue, GPU_SERIAL_LEN);
-		}
-		program_eeprom(serialvalue, (void *)&gn22_gpu_cfg_newthermal, sizeof(gn22_gpu_cfg_newthermal), outfilename);
-	}
-
-	if (ssdflag) {
-		program_eeprom(serialvalue, (void *)&ssd_cfg, sizeof(ssd_cfg), outfilename);
-	}
-
-	if (pcieflag) {
-		program_eeprom(serialvalue, (void *)&pcie_accessory_cfg, sizeof(pcie_accessory_cfg), outfilename);
-	}
-
-	return 0;
+	return 1;
 }

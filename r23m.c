@@ -63,3 +63,9 @@ struct default_gpu_cfg r23m_gpu_cfg = {
 	.pcba_serial = {.gpu_subsys = GPU_PCB, .serial = {'F', 'R', 'A', 'G', 'M', 'A', 'S', 'P', '8', '1',
 					'3', '3', '1', 'P', 'C', 'B', '0', '0', '\0', '\0'},}
 };
+
+
+void r23m_gpu_cfg_write_pcb(char * serial)
+{
+	strncpy(r23m_gpu_cfg.pcba_serial.serial, serial, GPU_SERIAL_LEN);
+}

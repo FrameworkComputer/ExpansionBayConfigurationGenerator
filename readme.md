@@ -19,20 +19,20 @@ The application will generate a `.bin` file in the same directory with the EEPRO
 ## Generate AMD GPU Serial
 
 ```
-./gpu_cfg_gen -a -s FRAKMBCP81331ASSY0 -p FRAGMASP81331PCB00
+./gpu_cfg_gen -t AMDR23 -s FRAKMBCP81331ASSY0 -p FRAGMASP81331PCB00
 ```
 
 ## Generate NV GPU Serial
 
 ```
-./gpu_cfg_gen -n -s FRAKMQCP41500ASSY0 -p FRAKHZCP41500PCB00
+./gpu_cfg_gen -t NVGN22 -s FRAKMQCP41500ASSY0 -p FRAKHZCP41500PCB00
 ```
 
 
 ## Generate SSD
 
 ```
-./gpu_cfg_gen -d -s FRAKMBCP81331ASSY0
+./gpu_cfg_gen -t SSD -s FRAKMBCP81331ASSY0
 ```
 
 ## Different file name
@@ -40,7 +40,7 @@ The application will generate a `.bin` file in the same directory with the EEPRO
 By default the generated file is called `eeprom.bin`, here's how to use a different one:
 
 ```
-./gpu_cfg_gen -d -s FRAKMBCP81331ASSY0 -o ssd.bin
+./gpu_cfg_gen -t SSD -s FRAKMBCP81331ASSY0 -o ssd.bin
 ```
 
 ## Read EEPROM binary
