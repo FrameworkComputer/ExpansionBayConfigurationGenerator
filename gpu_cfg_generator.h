@@ -65,5 +65,6 @@ enum power_state {
 
 #include <ssd.h>
 #include <pcie.h>
+#include <pcie_thermal.h>
 
 #endif /* __GPU_CFG_GENERATOR_H */

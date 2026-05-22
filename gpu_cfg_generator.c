@@ -517,6 +517,7 @@ struct eeprom_target programming_targets [] = {
 	{"NVGN22_NEWTHERMAL", (void*)&gn22_gpu_cfg_newthermal, sizeof(gn22_gpu_cfg_newthermal), gn22_newthermal_gpu_cfg_write_pcb},
 	{"SSD", (void*)&ssd_cfg, sizeof(ssd_cfg)},
 	{"PCIE", (void*)&pcie_accessory_cfg, sizeof(pcie_accessory_cfg)},
+	{"PCIE_THERMAL_3RDPARTY", (void*)&pcie_thermal_cfg, sizeof(pcie_thermal_cfg)},
 };
 
 int main(int argc, char *argv[]) {
